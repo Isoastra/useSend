@@ -36,13 +36,16 @@ deny workforce users. No product administrator flag or team membership is grante
 
 Build the `isoastra-deployed` release branch with its vendored package available in
 both Turbo's source context and the installer context. Run Prisma migration deploy
-once with the migration owner before rolling the app. The additive migration
+once with the migration owner before rolling the app. The frozen upstream runtime
+uses `pnpx prisma@6.6.0 migrate deploy`; its copied Prisma CLI lacks the standalone
+engine dependency, so use the existing startup path with registry access rather
+than invoking `node_modules/prisma/build/index.js` directly. The additive migration
 models the native table in Prisma and places shared provider metadata in `fleet`
 to keep it outside public-schema convergence. Backups must include `fleet`, public
 native workforce rows, and the migration journal together.
 
 Configure `OIDC_ISSUER`, `WORKFORCE_SCIM_SCOPE`, `WORKFORCE_SCIM_BASE_URL` (public
-origin plus `/scim/v2`), and independent long random `WORKFORCE_SCIM_TOKEN` and
+origin plus `/scim/v2`), and independent long random `WORKFORCE_SCIM_WRITE_TOKEN` and
 `WORKFORCE_SCIM_READ_TOKEN`. The latter permits authenticated reads only. Store
 credentials in the existing encrypted custody/env route; never distribute passwords
 to application users. Scope absence fails workforce admission closed. The HTTP
@@ -55,6 +58,16 @@ CA certificate read-only and set `WORKFORCE_DATABASE_TLS_CERT` and
 and exact server leaf fingerprint; it removes driver DSN SSL overrides. A missing
 certificate, changed leaf, or failed verification must be repaired through custody
 and deployment rather than weakening TLS validation.
+
+Production uses scope `usesend:production` and base URL
+`https://send.isoastra.com/scim/v2`. Alien and Delenda mount the existing internal
+PostgreSQL public certificates at `/run/usesend/postgres-server.crt` and
+`/run/usesend/postgres-ca.crt`; the complete app environment remains in
+`usesend-internal.env.age`. The deployment modules own the image pin and mounts.
+Take an encrypted-volume database backup, apply the additive migration, qualify a
+loopback candidate with workers disabled, and roll each app replica using its
+canonical compose definition. Preserve sender/worker roles and the existing
+customer databases, teams, memberships and service credentials.
 
 ## Qualification
 
