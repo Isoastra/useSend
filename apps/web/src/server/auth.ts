@@ -153,6 +153,33 @@ function getProviders() {
     );
   }
 
+  if (env.OIDC_ISSUER && env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
+    const issuer = env.OIDC_ISSUER.replace(/\/$/, "");
+    providers.push({
+      id: "oidc",
+      name: env.OIDC_PROVIDER_LABEL ?? "SSO",
+      type: "oauth",
+      wellKnown: `${issuer}/.well-known/openid-configuration`,
+      issuer,
+      clientId: env.OIDC_CLIENT_ID,
+      clientSecret: env.OIDC_CLIENT_SECRET,
+      authorization: { params: { scope: "openid email profile" } },
+      idToken: true,
+      checks: ["pkce", "state"],
+      allowDangerousEmailAccountLinking: true,
+      profile(profile: Record<string, unknown>) {
+        return {
+          id: String(profile.sub),
+          name: (profile.name ??
+            profile.preferred_username ??
+            profile.email) as string,
+          email: profile.email as string,
+          image: (profile.picture as string | undefined) ?? null,
+        };
+      },
+    } as unknown as Provider);
+  }
+
   if (env.FROM_EMAIL) {
     providers.push(
       EmailProvider({

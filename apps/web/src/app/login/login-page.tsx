@@ -5,7 +5,7 @@ import Image from "next/image";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ClientSafeProvider, LiteralUnion, signIn } from "next-auth/react";
 import {
   Form,
@@ -149,6 +149,36 @@ export default function LoginPage({
       : "/dashboard";
     signIn(provider, { callbackUrl });
   };
+
+  // SSO is the default auth path: when an OIDC provider is configured, go
+  // straight to the IdP instead of showing a second login step. `?nosso=1`
+  // (or an auth error) falls back to the stock provider list.
+  const oidcProvider = providers?.find((provider) => provider.id === "oidc");
+  const autoSso =
+    Boolean(oidcProvider) &&
+    searchParams.get("nosso") !== "1" &&
+    !searchParams.get("error");
+
+  useEffect(() => {
+    if (!autoSso || !oidcProvider) return;
+    const callbackUrl = inviteId
+      ? `/join-team?inviteId=${inviteId}`
+      : "/dashboard";
+    void signIn(oidcProvider.id, { callbackUrl });
+  }, [autoSso, oidcProvider, inviteId]);
+
+  if (autoSso) {
+    return (
+      <main className="h-screen flex justify-center items-center">
+        <div className="flex flex-col items-center gap-4">
+          <Spinner className="w-6 h-6" />
+          <p className="text-sm text-muted-foreground">
+            Redirecting to {oidcProvider?.name}
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="h-screen flex justify-center items-center">

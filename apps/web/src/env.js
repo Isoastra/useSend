@@ -37,6 +37,10 @@ export const env = createEnv({
     UNSEND_API_KEY: z.string().optional(),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
+    OIDC_ISSUER: z.string().optional(),
+    OIDC_CLIENT_ID: z.string().optional(),
+    OIDC_CLIENT_SECRET: z.string().optional(),
+    OIDC_PROVIDER_LABEL: z.string().optional(),
     AWS_SES_ENDPOINT: z.string().optional(),
     AWS_SNS_ENDPOINT: z.string().optional(),
     AWS_DEFAULT_REGION: z
@@ -58,6 +62,13 @@ export const env = createEnv({
     DISCORD_WEBHOOK_URL: z.string().optional(),
     REDIS_URL: z.string(),
     REDIS_KEY_PREFIX: z.string().default(""),
+    // Isoastra fork (agentstate-0i1.2): sender-singleton guard. Every replica
+    // of this Next server starts the BullMQ email workers from
+    // instrumentation.ts, and the worker concurrency is the SES account quota
+    // with no BullMQ limiter -- so N replicas mean N x the SES send rate.
+    // Upstream has no flag for this. Set WORKER_ENABLED=false on every replica
+    // but the one that owns sending; queueing is unaffected.
+    WORKER_ENABLED: z.string().default("true"),
     S3_COMPATIBLE_ACCESS_KEY: z.string().optional(),
     S3_COMPATIBLE_SECRET_KEY: z.string().optional(),
     S3_COMPATIBLE_API_URL: z.string().optional(),
@@ -109,6 +120,10 @@ export const env = createEnv({
     UNSEND_API_KEY: process.env.UNSEND_API_KEY,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    OIDC_ISSUER: process.env.OIDC_ISSUER,
+    OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID,
+    OIDC_CLIENT_SECRET: process.env.OIDC_CLIENT_SECRET,
+    OIDC_PROVIDER_LABEL: process.env.OIDC_PROVIDER_LABEL,
     AWS_DEFAULT_REGION: process.env.AWS_DEFAULT_REGION,
     AWS_SES_ENDPOINT: process.env.AWS_SES_ENDPOINT,
     AWS_SNS_ENDPOINT: process.env.AWS_SNS_ENDPOINT,
@@ -122,6 +137,7 @@ export const env = createEnv({
     DISCORD_WEBHOOK_URL: process.env.DISCORD_WEBHOOK_URL,
     REDIS_URL: process.env.REDIS_URL,
     REDIS_KEY_PREFIX: process.env.REDIS_KEY_PREFIX,
+    WORKER_ENABLED: process.env.WORKER_ENABLED,
     FROM_EMAIL: process.env.FROM_EMAIL,
     S3_COMPATIBLE_ACCESS_KEY: process.env.S3_COMPATIBLE_ACCESS_KEY,
     S3_COMPATIBLE_SECRET_KEY: process.env.S3_COMPATIBLE_SECRET_KEY,
