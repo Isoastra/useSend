@@ -41,6 +41,12 @@ export const env = createEnv({
     OIDC_CLIENT_ID: z.string().optional(),
     OIDC_CLIENT_SECRET: z.string().optional(),
     OIDC_PROVIDER_LABEL: z.string().optional(),
+    WORKFORCE_SCIM_SCOPE: z.string().min(1).optional(),
+    WORKFORCE_SCIM_BASE_URL: z.string().url().optional(),
+    WORKFORCE_SCIM_WRITE_TOKEN: z.string().min(32).optional(),
+    WORKFORCE_SCIM_READ_TOKEN: z.string().min(32).optional(),
+    WORKFORCE_DATABASE_TLS_CERT: z.string().min(1).optional(),
+    WORKFORCE_DATABASE_TLS_CA: z.string().min(1).optional(),
     AWS_SES_ENDPOINT: z.string().optional(),
     AWS_SNS_ENDPOINT: z.string().optional(),
     AWS_DEFAULT_REGION: z
@@ -83,9 +89,9 @@ export const env = createEnv({
     SMTP_USER: z.string().default("usesend"),
     CONTACT_BOOK_ID: z.string().optional(),
     EMAIL_CLEANUP_DAYS: z
-        .string()
-        .optional()
-        .transform((str) => (str ? parseInt(str, 10) : undefined)),
+      .string()
+      .optional()
+      .transform((str) => (str ? parseInt(str, 10) : undefined)),
   },
 
   /**
@@ -114,8 +120,10 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     GITHUB_ID: process.env.GITHUB_ID,
     GITHUB_SECRET: process.env.GITHUB_SECRET,
-    AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY,
-    AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_KEY,
+    AWS_ACCESS_KEY_ID:
+      process.env.AWS_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY,
+    AWS_SECRET_ACCESS_KEY:
+      process.env.AWS_SECRET_ACCESS_KEY || process.env.AWS_SECRET_KEY,
     USESEND_API_KEY: process.env.USESEND_API_KEY,
     UNSEND_API_KEY: process.env.UNSEND_API_KEY,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
@@ -124,6 +132,12 @@ export const env = createEnv({
     OIDC_CLIENT_ID: process.env.OIDC_CLIENT_ID,
     OIDC_CLIENT_SECRET: process.env.OIDC_CLIENT_SECRET,
     OIDC_PROVIDER_LABEL: process.env.OIDC_PROVIDER_LABEL,
+    WORKFORCE_SCIM_SCOPE: process.env.WORKFORCE_SCIM_SCOPE,
+    WORKFORCE_SCIM_BASE_URL: process.env.WORKFORCE_SCIM_BASE_URL,
+    WORKFORCE_SCIM_WRITE_TOKEN: process.env.WORKFORCE_SCIM_WRITE_TOKEN,
+    WORKFORCE_SCIM_READ_TOKEN: process.env.WORKFORCE_SCIM_READ_TOKEN,
+    WORKFORCE_DATABASE_TLS_CERT: process.env.WORKFORCE_DATABASE_TLS_CERT,
+    WORKFORCE_DATABASE_TLS_CA: process.env.WORKFORCE_DATABASE_TLS_CA,
     AWS_DEFAULT_REGION: process.env.AWS_DEFAULT_REGION,
     AWS_SES_ENDPOINT: process.env.AWS_SES_ENDPOINT,
     AWS_SNS_ENDPOINT: process.env.AWS_SNS_ENDPOINT,

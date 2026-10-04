@@ -5,7 +5,11 @@ import {
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
-import { type Adapter, type AdapterUser } from "next-auth/adapters";
+import {
+  type Adapter,
+  type AdapterUser,
+  type AdapterAccount,
+} from "next-auth/adapters";
 import GitHubProvider from "next-auth/providers/github";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
@@ -14,6 +18,12 @@ import { Provider } from "next-auth/providers/index";
 import { sendSignUpEmail } from "~/server/mailer";
 import { env } from "~/env";
 import { db } from "~/server/db";
+import { workforcePool } from "~/server/workforce/provider";
+import { workforceUser } from "~/server/workforce/native";
+import {
+  createWorkforceAuthAdapter,
+  workforceSignIn,
+} from "~/server/workforce/auth";
 
 const GITHUB_OAUTH_ISSUER = "https://github.com/login/oauth";
 
@@ -105,6 +115,7 @@ declare module "next-auth" {
       isBetaUser: boolean;
       isAdmin: boolean;
       isWaitlisted: boolean;
+      isWorkforce?: boolean;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
@@ -166,7 +177,7 @@ function getProviders() {
       authorization: { params: { scope: "openid email profile" } },
       idToken: true,
       checks: ["pkce", "state"],
-      allowDangerousEmailAccountLinking: true,
+      allowDangerousEmailAccountLinking: false,
       profile(profile: Record<string, unknown>) {
         return {
           id: String(profile.sub),
@@ -208,23 +219,40 @@ function getProviders() {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    signIn: async ({ user, account }) =>
-      canRegisterSelfHostedUser(user.email, account),
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-        isBetaUser: user.isBetaUser,
-        isAdmin: user.email === env.ADMIN_EMAIL,
-        isWaitlisted: user.isWaitlisted,
-      },
-    }),
+    redirect: async ({ url, baseUrl }) => {
+      if (url === "/dashboard" || url === baseUrl + "/dashboard")
+        return baseUrl + "/api/workforce/entry";
+      if (url.startsWith("/")) return baseUrl + url;
+      try {
+        return new URL(url).origin === baseUrl ? url : baseUrl;
+      } catch {
+        return baseUrl;
+      }
+    },
+    signIn: async ({ user, account }) => {
+      const decision = await workforceSignIn(user, account);
+      if (decision !== null) return decision;
+      return canRegisterSelfHostedUser(user.email, account);
+    },
+    session: async ({ session, user }) => {
+      const w = await workforceUser(workforcePool(), user.id);
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+          isBetaUser: user.isBetaUser,
+          isAdmin: !w && user.email === env.ADMIN_EMAIL,
+          isWaitlisted: user.isWaitlisted,
+          isWorkforce: Boolean(w),
+        },
+      };
+    },
   },
   adapter: (() => {
-    const prismaAdapter = PrismaAdapter(db);
+    const prismaAdapter = PrismaAdapter(db) as unknown as Adapter;
 
-    return {
+    return createWorkforceAuthAdapter({
       ...prismaAdapter,
       async createUser(user: AdapterUser) {
         if (env.NEXT_PUBLIC_IS_CLOUD) {
@@ -270,7 +298,7 @@ export const authOptions: NextAuthOptions = {
           });
         });
       },
-    } as Adapter;
+    } as Adapter);
   })(),
   pages: {
     signIn: "/login",
@@ -312,4 +340,7 @@ export const authOptions: NextAuthOptions = {
  *
  * @see https://next-auth.js.org/configuration/nextjs
  */
-export const getServerAuthSession = () => getServerSession(authOptions);
+export const getServerAuthSession = async () => {
+  const session = await getServerSession(authOptions);
+  return session?.user?.isWorkforce ? null : session;
+};
