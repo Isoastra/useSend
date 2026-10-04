@@ -97,7 +97,7 @@ export const publicProcedure = t.procedure;
  * users should still have access (e.g., waitlist management).
  */
 export const authedProcedure = t.procedure.use(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user) {
+  if (!ctx.session || !ctx.session.user || ctx.session.user.isWorkforce) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
 
@@ -147,7 +147,7 @@ export const teamProcedure = protectedProcedure.use(async ({ ctx, next }) => {
           session: { ...ctx.session, user: ctx.session.user },
         },
       });
-    }
+    },
   );
 });
 
@@ -205,7 +205,7 @@ export const contactBookProcedure = teamProcedure
   .input(
     z.object({
       contactBookId: z.string(),
-    })
+    }),
   )
   .use(async ({ ctx, next, input }) => {
     const contactBook = await db.contactBook.findUnique({
@@ -225,7 +225,7 @@ export const campaignProcedure = teamProcedure
   .input(
     z.object({
       campaignId: z.string(),
-    })
+    }),
   )
   .use(async ({ ctx, next, input }) => {
     const campaign = await db.campaign.findUnique({
@@ -245,7 +245,7 @@ export const templateProcedure = teamProcedure
   .input(
     z.object({
       templateId: z.string(),
-    })
+    }),
   )
   .use(async ({ ctx, next, input }) => {
     const template = await db.template.findUnique({

@@ -23,12 +23,28 @@ type QueueEmailJob = TeamJob<{
   isBulk?: boolean;
 }>;
 
+// Isoastra fork (agentstate-0i1.2): the sender is a singleton across replicas.
+// `quota` is the SES account send rate, handed straight to BullMQ `concurrency`
+// with no `limiter`, so two replicas consuming the same queue would run at 2x
+// the SES rate and earn throttling. Queue *producers* stay on every replica;
+// only the consumer is gated. WORKER_ENABLED defaults to "true", so a single-
+// node deployment is unchanged.
+const workerEnabled = env.WORKER_ENABLED !== "false";
+
 function createQueueAndWorker(region: string, quota: number, suffix: string) {
   const connection = getRedis();
 
   const queueName = `${region}-${suffix}`;
 
   const queue = new Queue(queueName, { connection, prefix: BULL_PREFIX, skipVersionCheck: true });
+
+  if (!workerEnabled) {
+    logger.info(
+      { queueName },
+      `[EmailQueueService]: WORKER_ENABLED=false -- queue only, no worker on this replica`
+    );
+    return { queue, worker: undefined };
+  }
 
   // TODO: Add team context to job data when queueing
   const worker = new Worker(queueName, createWorkerHandler(executeEmail), {
@@ -85,7 +101,9 @@ export class EmailQueueService {
           "transaction"
         );
       this.transactionalQueue.set(region, transactionalQueue);
-      this.transactionalWorker.set(region, transactionalWorker);
+      if (transactionalWorker) {
+        this.transactionalWorker.set(region, transactionalWorker);
+      }
     }
 
     if (this.marketingQueue.has(region)) {
@@ -109,7 +127,9 @@ export class EmailQueueService {
           "marketing"
         );
       this.marketingQueue.set(region, marketingQueue);
-      this.marketingWorker.set(region, marketingWorker);
+      if (marketingWorker) {
+        this.marketingWorker.set(region, marketingWorker);
+      }
     }
   }
 

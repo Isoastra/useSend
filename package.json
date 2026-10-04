@@ -35,14 +35,16 @@
     "d": "pnpm dx && pnpm dev",
     "dx": "pnpm i && pnpm dx:up && pnpm db:migrate-dev",
     "dx:up": "docker compose -f docker/dev/compose.yml up -d",
-    "dx:down": "docker compose -f docker/dev/compose.yml down"
+    "dx:down": "docker compose -f docker/dev/compose.yml down",
+    "test:workforce": "node scripts/test-workforce-isolated.mjs"
   },
   "devDependencies": {
     "@usesend/eslint-config": "workspace:*",
     "@usesend/typescript-config": "workspace:*",
     "dotenv-cli": "^8.0.0",
     "mintlify": "^4.2.566",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "tsx": "4.20.6"
   },
   "packageManager": "pnpm@11.11.0",
   "engines": {

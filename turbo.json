@@ -1,19 +1,10 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/.env.*local"
-  ],
+  "globalDependencies": ["**/.env.*local"],
   "tasks": {
     "build": {
-      "dependsOn": [
-        "^build",
-        "db:generate"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
-      ],
+      "dependsOn": ["^build", "db:generate"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "env": [
         "DATABASE_URL",
         "NEXTAUTH_URL",
@@ -38,24 +29,30 @@
         "REDIS_URL",
         "GOOGLE_CLIENT_ID",
         "GOOGLE_CLIENT_SECRET",
+        "OIDC_ISSUER",
+        "OIDC_CLIENT_ID",
+        "OIDC_CLIENT_SECRET",
+        "OIDC_PROVIDER_LABEL",
         "NEXT_PUBLIC_IS_CLOUD",
         "S3_COMPATIBLE_ACCESS_KEY",
         "S3_COMPATIBLE_SECRET_KEY",
         "S3_COMPATIBLE_API_URL",
-        "S3_COMPATIBLE_PUBLIC_URL"
+        "S3_COMPATIBLE_PUBLIC_URL",
+        "WORKFORCE_SCIM_SCOPE",
+        "WORKFORCE_SCIM_BASE_URL",
+        "WORKFORCE_SCIM_WRITE_TOKEN",
+        "WORKFORCE_SCIM_READ_TOKEN",
+        "WORKFORCE_DATABASE_TLS_CERT",
+        "WORKFORCE_DATABASE_TLS_CA"
       ]
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
+      "dependsOn": ["^lint"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": [
-        "db:generate"
-      ]
+      "dependsOn": ["db:generate"]
     },
     "db:generate": {
       "cache": false

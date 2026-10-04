@@ -94,7 +94,24 @@ export async function addDomain(
       DomainSigningPrivateKey: privateKey,
     },
   });
-  const response = await sesClient.send(command);
+  let response;
+  try {
+    response = await sesClient.send(command);
+  } catch (error) {
+    if ((error as { name?: string })?.name !== "AlreadyExistsException") {
+      throw error;
+    }
+    // The identity already exists in this AWS account (a shared fleet domain
+    // verified outside useSend). Adopt it exactly as-is: do not touch its DKIM
+    // signing attributes or its MAIL FROM domain, which other senders rely on.
+    // Verification status is read back from SES by the domain refresh, so the
+    // domain still reports its real state.
+    logger.info(
+      { domain, region },
+      "SES identity already exists, adopting it unchanged"
+    );
+    return "";
+  }
 
   const emailIdentityCommand = new PutEmailIdentityMailFromAttributesCommand({
     EmailIdentity: domain,

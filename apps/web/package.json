@@ -43,6 +43,7 @@
     "@hono/zod-openapi": "^0.10.0",
     "@hookform/resolvers": "5.0.1",
     "@isaacs/ttlcache": "^1.4.1",
+    "@isoastra/fleet-scim": "file:vendor/isoastra-fleet-scim-0.1.0.tgz",
     "@prisma/client": "^6.6.0",
     "@t3-oss/env-nextjs": "^0.13.0",
     "@tanstack/react-query": "^5.100.10",
@@ -68,6 +69,7 @@
     "next": "15.5.18",
     "next-auth": "^4.24.14",
     "nodemailer": "^8.0.5",
+    "pg": "8.23.0",
     "pino": "^9.7.0",
     "pino-pretty": "^13.0.0",
     "pnpm": "^11.11.0",
@@ -96,6 +98,7 @@
     "@types/mime-types": "^2.1.4",
     "@types/node": "^22.15.2",
     "@types/nodemailer": "^8.0.0",
+    "@types/pg": "8.16.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@types/ua-parser-js": "^0.7.39",
@@ -103,6 +106,7 @@
     "@typescript-eslint/parser": "^8.31.0",
     "@usesend/eslint-config": "workspace:*",
     "@usesend/typescript-config": "workspace:*",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.18",
     "postcss": "^8.5.14",
@@ -111,8 +115,7 @@
     "tailwindcss": "^4.1.0",
     "typescript": "^5.8.3",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4",
-    "@vitest/coverage-v8": "^3.2.4"
+    "vitest": "^3.2.4"
   },
   "overrides": {
     "react-is": "^19.0.0-rc-69d4b800-20241021"

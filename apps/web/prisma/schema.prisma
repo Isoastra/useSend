@@ -59,6 +59,9 @@ model Account {
   session_state            String?
   user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  workforce Workforce[]
+
+  @@unique([provider, providerAccountId, userId], map: "usesend_workforce_account_binding")
   @@unique([provider, providerAccountId])
 }
 
@@ -91,6 +94,7 @@ model User {
   sessions         Session[]
   teamUsers        TeamUser[]
   webhookEndpoints Webhook[]
+  workforce Workforce?
 }
 
 enum Plan {
@@ -509,4 +513,20 @@ model WebhookCall {
 
   @@index([teamId, webhookId, status])
   @@index([createdAt(sort: Desc)])
+}
+
+// Native workforce identity is retained and never adopted by email or linked to another provider.
+model Workforce {
+ userId Int @id @map("user_id")
+ issuer String
+ subject String
+ provider String @default("oidc")
+ scopeId String @map("scope_id")
+ active Boolean @default(false)
+ grants Json @default("[]")
+ revocationEpoch BigInt @default(0) @map("revocation_epoch")
+ user User @relation(fields:[userId],references:[id],onDelete:NoAction,onUpdate:NoAction)
+ binding Account @relation(fields:[provider,subject,userId],references:[provider,providerAccountId,userId],onDelete:NoAction,onUpdate:NoAction)
+ @@unique([issuer,subject])
+ @@map("usesend_workforce")
 }
